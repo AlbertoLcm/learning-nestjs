@@ -1,50 +1,44 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { posts as PostModel } from '@prisma/client';
+import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { Post as PostModel } from '@prisma/client';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
-  @Get()
-  getPosts(): Promise<PostModel[]> {
-    return this.postsService.getPosts();
-  }
-
-  @Post('create')
-  createPost(
-    @Body()
-    post: {
-      id: string;
-      title: string;
-      body?: string;
-      description?: string;
-      user_id: string;
-    },
+  @Post()
+  async createDraft(
+    @Body() postData: { title: string; content?: string; authorEmail: string },
   ): Promise<PostModel> {
-    return this.postsService.createPost(post);
-  }
-
-  @Put('update')
-  updatePost(@Body() post: any) {
-    this.postsService.updatePost();
+    const { title, content, authorEmail } = postData;
+    return this.postsService.createPost({
+      title,
+      content,
+      author: {
+        connect: { email: authorEmail },
+      },
+    });
   }
 
   @Get(':id')
-  getPostsByUserId(@Param('id') id: string) {
-    return this.postsService.getPostsByUserId(id);
+  findOne(@Param('id') id: string) {
+    return this.postsService.findOne(+id);
+  }
+
+  @Get('user/:userId')
+  findAllByUser(@Param('userId') userId: string) {
+    return this.postsService.findAllByUser(+userId);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
+    return this.postsService.update(+id, updatePostDto);
   }
 
   @Delete(':id')
-  deletePost(@Param('id') id: number) {
-    this.postsService.deletePost(Number(id));
+  remove(@Param('id') id: string) {
+    return this.postsService.remove(+id);
   }
 }

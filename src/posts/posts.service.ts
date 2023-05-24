@@ -1,38 +1,43 @@
 import { Injectable } from '@nestjs/common';
+import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from '../prisma.service';
-import { Prisma, posts, users } from '@prisma/client';
+import { Post, Prisma } from '@prisma/client';
 
 @Injectable()
 export class PostsService {
   constructor(private prisma: PrismaService) {}
 
-  async getPosts(): Promise<posts[]> {
-    return this.prisma.posts.findMany();
-  }
-
-  async getPostById(id: number) {
-    return 'Post with id: ' + id;
-  }
-
-  async getPostsByUserId(user_id: string) {
-    const usuariosConArticulos = await this.prisma.posts.findMany({
-      // TODO: Investigar por qué no funciona el include
-    });
-
-    return usuariosConArticulos;
-  }
-
-  async createPost(data: Prisma.postsCreateInput): Promise<posts> {
-    return this.prisma.posts.create({
+  async createPost(data: Prisma.PostCreateInput): Promise<Post> {
+    return this.prisma.post.create({
       data,
     });
   }
 
-  async updatePost() {
-    return 'Updating post...';
+  findAll() {
+    return `This action returns all posts`;
   }
 
-  async deletePost(id: number) {
-    return 'Deleting post with id: ' + id;
+  findOne(id: number) {
+    return `This action returns a #${id} post`;
+  }
+
+  async findAllByUser(userId: number): Promise<any> {
+    return this.prisma.user.findMany({
+      include: {
+        posts: true,
+      },
+      where: {
+        id: userId,
+      },
+    });
+  }
+
+  update(id: number, updatePostDto: UpdatePostDto) {
+    return `This action updates a #${id} post`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} post`;
   }
 }
