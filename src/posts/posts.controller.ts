@@ -1,25 +1,39 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  UsePipes,
+  ValidationPipe,
+  Query,
+} from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Post as PostModel } from '@prisma/client';
+import { ResponseSuccess } from 'src/common/dto/response.dto';
+import { IResponse } from 'src/common/interfaces/response.interface';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
-  async createDraft(
-    @Body() postData: { title: string; content?: string; authorEmail: string },
-  ): Promise<PostModel> {
-    const { title, content, authorEmail } = postData;
-    return this.postsService.createPost({
-      title,
-      content,
-      author: {
-        connect: { email: authorEmail },
-      },
-    });
+  @UsePipes(new ValidationPipe())
+  async createDraft(@Body() postData: CreatePostDto): Promise<IResponse> {
+    const newPost = await this.postsService.createPost(postData);
+    console.log(newPost);
+    const data = new ResponseSuccess('Post created', newPost);
+    return new ResponseSuccess('Post created', { hola: 'hola'  });
+  }
+
+  @Get()
+  async findAll(@Query('page', ParseIntPipe) page: number = 1) {
+    return this.postsService.findAll(page);
   }
 
   @Get(':id')
@@ -34,7 +48,7 @@ export class PostsController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postsService.update(+id, updatePostDto);
+    return 'This action updates a post';
   }
 
   @Delete(':id')
