@@ -1,9 +1,7 @@
-export interface IResponse {
-  info: {
-    success: boolean;
-    message: string;
-    errorMessage: string;
-    error: any;
-  };
-  data: object | object[];
+export interface IResponse<T> {
+  success: boolean;
+  message: string;
+  errorMessage: string;
+  error: any;
+  data: T;
 }
