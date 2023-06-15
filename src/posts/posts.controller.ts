@@ -25,8 +25,8 @@ export class PostsController {
   @Post()
   @UsePipes(new ValidationPipe())
   async createDraft(@Body() postData: CreatePostDto): Promise<IResponse> {
-    const newPost = await this.postsService.createPost(postData);
-    return new ResponseSuccess('Post created', newPost);
+    const newPost:  = await this.postsService.createPost(postData);
+    return new ResponseSuccess<>('Post created', newPost);
   }
 
   @Get()
