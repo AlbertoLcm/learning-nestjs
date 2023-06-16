@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  ParseIntPipe,
   UsePipes,
   ValidationPipe,
   Query,
@@ -42,42 +41,96 @@ export class PostsController {
 
   @Get()
   async findAll(
-    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('page') page: number = 1,
     perPage: number = 10,
   ) {
-    const posts = await this.postsService.findAll(page, perPage);
-    const totalCount: number = await this.postsService.count();
-    const totalPages: number = Math.ceil(totalCount / perPage);
-    const info: IResponsePagination = {
-      success: true,
-      message: 'Posts found',
-      currentPage: page,
-      perPage,
-      totalPages,
-      totalCount,
-      next: page >= totalPages ? null : `localhost:3000/posts?page=${page + 1}`,
-      prev: page === 1 ? null : `localhost:3000/posts?page=${page - 1}`,
-    };
-    return new ResponsePagination(info, posts);
+    try {
+      const posts = await this.postsService.findAll(+page, perPage);
+      const totalCount: number = await this.postsService.count();
+      const totalPages: number = Math.ceil(totalCount / perPage);
+      const info: IResponsePagination = {
+        success: true,
+        message: 'Posts found',
+        currentPage: page,
+        perPage,
+        totalPages,
+        totalCount,
+        next:
+          page >= totalPages ? null : `localhost:3000/posts?page=${page + 1}`,
+        prev: page === 1 ? null : `localhost:3000/posts?page=${page - 1}`,
+      };
+      return new ResponsePagination<PostModel>(info, posts);
+    } catch (error) {
+      return new ResponseError(error.message, error);
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postsService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    try {
+      const post: PostModel = await this.postsService.findOne(+id);
+      if (!post) {
+        return new ResponseError(`Post with id ${id} not found`, null);
+      }
+      return new ResponseSuccess<PostModel>('Post found', post);
+    } catch (error) {
+      return new ResponseError('Algo salio mal', error);
+    }
   }
 
   @Get('user/:userId')
-  findAllByUser(@Param('userId') userId: string) {
-    return this.postsService.findAllByUser(+userId);
+  async findAllByUser(
+    @Param('userId') userId: string,
+    @Query('page') page: number = 1,
+    perPage: number = 10,
+  ) {
+    try {
+      const posts = await this.postsService.findAllByUser(
+        +userId,
+        +page,
+        perPage,
+      );
+      const totalCount: number = await this.postsService.count(+userId);
+      const totalPages: number = Math.ceil(totalCount / perPage);
+      const info: IResponsePagination = {
+        success: true,
+        message: 'Posts found',
+        currentPage: +page,
+        perPage,
+        totalPages,
+        totalCount,
+        next:
+          page >= totalPages
+            ? null
+            : `localhost:3000/posts/user/${userId}?page=${+page + 1}`,
+        prev:
+          page === 1
+            ? null
+            : `localhost:3000/posts/user/${userId}?page=${+page - 1}`,
+      };
+      return new ResponsePagination<PostModel>(info, posts);
+    } catch (error) {
+      return new ResponseError(error.message, error);
+    }
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return 'This action updates a post';
+  async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
+    try {
+      const update = await this.postsService.update(+id, updatePostDto);
+      return new ResponseSuccess<PostModel>('Post updated', update);
+    } catch (error) {
+      return new ResponseError(error.message, error);
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postsService.remove(+id);
+  async remove(@Param('id') id: string) {
+    try {
+      await this.postsService.remove(+id);
+      return new ResponseSuccess<PostModel>('Post deleted', null);
+    } catch (error) {
+      return new ResponseError(error.message, error);
+    }
   }
 }

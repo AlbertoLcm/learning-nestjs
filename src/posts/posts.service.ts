@@ -20,7 +20,14 @@ export class PostsService {
     });
   }
 
-  async count(): Promise<number> {
+  async count(userId?: number): Promise<number> {
+    if (userId) {
+      return this.prisma.post.count({
+        where: {
+          authorId: userId,
+        },
+      });
+    }
     return this.prisma.post.count();
   }
 
@@ -28,13 +35,16 @@ export class PostsService {
     return await this.prisma.post.findMany({
       skip: (page - 1) * perPage,
       take: perPage,
+      include: {
+        author: true,
+      },
       orderBy: {
         id: 'desc',
       },
     });
   }
 
-  findOne(id: number) {
+  findOne(id: number): Promise<Post> {
     return this.prisma.post.findUnique({
       where: {
         id,
@@ -42,16 +52,14 @@ export class PostsService {
     });
   }
 
-  async findAllByUser(userId: number): Promise<any> {
-    // return this.prisma.user.findMany({
-    //   include: {
-    //     posts: true,
-    //   },
-    //   where: {
-    //     id: userId,
-    //   },
-    // });
-    return this.prisma.post.findMany({
+  async findAllByUser(
+    userId: number,
+    page: number,
+    perPage: number,
+  ): Promise<any> {
+    return await this.prisma.post.findMany({
+      skip: (page - 1) * perPage,
+      take: perPage,
       where: {
         authorId: userId,
       },
@@ -66,6 +74,10 @@ export class PostsService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} post`;
+    return this.prisma.post.delete({
+      where: {
+        id,
+      },
+    });
   }
 }

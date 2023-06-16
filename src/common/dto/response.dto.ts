@@ -5,7 +5,7 @@ export class ResponseSuccess<T> implements IResponse<T> {
   constructor(message: string, data: T) {
     this.success = true;
     this.message = message;
-    this.errorMessage = '';
+    this.errorMessage = null;
     this.error = null;
     this.data = data;
   }
@@ -19,8 +19,8 @@ export class ResponseSuccess<T> implements IResponse<T> {
 export class ResponseError implements IResponse<null> {
   constructor(message: string, error: any) {
     this.success = false;
-    this.message = message;
-    this.errorMessage = error.message;
+    this.message = null;
+    this.errorMessage = message;
     this.error = error;
     this.data = null;
   }
@@ -37,3 +37,5 @@ export class ResponsePagination<T> {
     public readonly data: T[]
   ) {}
 }
+
+
