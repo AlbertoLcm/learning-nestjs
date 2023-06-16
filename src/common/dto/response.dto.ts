@@ -1,20 +1,6 @@
 import { IResponsePagination } from '../interfaces/response-pagination.interface';
 import { IResponse } from '../interfaces/response.interface';
 
-// export class ResponseSuccess implements IResponse {
-//   constructor(message: string, data: object | object[]) {
-//     this.info = {
-//       success: true,
-//       message: message,
-//       errorMessage: '',
-//       error: null
-//     };
-//     this.data = data;
-//   }
-//   info: { success: boolean; message: string; errorMessage: string; error: any };
-//   data: object | object[];
-// }
-
 export class ResponseSuccess<T> implements IResponse<T> {
   constructor(message: string, data: T) {
     this.success = true;
