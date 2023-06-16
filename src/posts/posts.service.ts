@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Post, Prisma } from '@prisma/client';
-import { PaginationInfo } from 'src/common/pagination/pagination-info.interface';
-import { PaginatedResponse } from 'src/common/pagination/Paginated-response';
 import { CreatePostDto } from './dto/create-post.dto';
 
 @Injectable()
@@ -18,33 +16,22 @@ export class PostsService {
         author: {
           connect: { email: authorEmail },
         },
-      }
+      },
     });
   }
 
-  async findAll(page: number): Promise<any> {
-    const perPage: number = 2;
-    const totalCount: number = await this.prisma.post.count();
-    const totalPages: number = Math.ceil(totalCount / perPage);
+  async count(): Promise<number> {
+    return this.prisma.post.count();
+  }
 
-    const info: PaginationInfo = {
-      currentPage: page,
-      perPage,
-      totalPages,
-      totalCount,
-      next: page >= totalPages ? null : `localhost:3000/posts?page=${page + 1}`,
-      prev: page === 1 ? null : `localhost:3000/posts?page=${page - 1}`,
-    }
-
-    const posts = await this.prisma.post.findMany({
+  async findAll(page: number, perPage: number): Promise<Post[]> {
+    return await this.prisma.post.findMany({
       skip: (page - 1) * perPage,
       take: perPage,
       orderBy: {
         id: 'desc',
       },
     });
-
-    return new PaginatedResponse<Post>(info, posts);
   }
 
   findOne(id: number) {
@@ -70,7 +57,7 @@ export class PostsService {
       },
       include: {
         author: true,
-      }
+      },
     });
   }
 

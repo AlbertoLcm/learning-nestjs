@@ -30,9 +30,24 @@ export class ResponseSuccess<T> implements IResponse<T> {
   public readonly data: T;
 }
 
-export class ResponsePagination {
+export class ResponseError implements IResponse<null> {
+  constructor(message: string, error: any) {
+    this.success = false;
+    this.message = message;
+    this.errorMessage = error.message;
+    this.error = error;
+    this.data = null;
+  }
+  public readonly success: boolean;
+  public readonly errorMessage: string;
+  public readonly error: any;
+  public readonly message: string;
+  public readonly data: null;
+}
+
+export class ResponsePagination<T> {
   constructor(
-    public readonly info: IResponsePagination, 
-    public readonly data: object[]
+    public readonly info: IResponsePagination,
+    public readonly data: T[]
   ) {}
 }
