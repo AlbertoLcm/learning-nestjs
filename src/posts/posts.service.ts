@@ -22,13 +22,13 @@ export class PostsService {
 
   async count(userId?: number): Promise<number> {
     if (userId) {
-      return this.prisma.post.count({
+      return await this.prisma.post.count({
         where: {
           authorId: userId,
         },
       });
     }
-    return this.prisma.post.count();
+    return await this.prisma.post.count();
   }
 
   async findAll(page: number, perPage: number): Promise<Post[]> {
@@ -49,6 +49,18 @@ export class PostsService {
       where: {
         id,
       },
+    });
+  }
+
+  findFeatured(): Promise<Post[]> {
+    return this.prisma.post.findMany({
+      take: 3,
+      orderBy: {
+        views: 'desc',
+      },
+      include: {
+        author: true,
+      }
     });
   }
 

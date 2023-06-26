@@ -42,7 +42,7 @@ export class PostsController {
   @Get()
   async findAll(
     @Query('page') page: number = 1,
-    perPage: number = 10,
+    perPage: number = 6,
   ) {
     try {
       const posts = await this.postsService.findAll(+page, perPage);
@@ -65,16 +65,27 @@ export class PostsController {
     }
   }
 
-  @Get(':id')
+  @Get('get/:id')
   async findOne(@Param('id') id: string) {
     try {
       const post: PostModel = await this.postsService.findOne(+id);
+      await this.postsService.update(+id, { views: post.views + 1 });
       if (!post) {
         return new ResponseError(`Post with id ${id} not found`, null);
       }
       return new ResponseSuccess<PostModel>('Post found', post);
     } catch (error) {
       return new ResponseError('Algo salio mal', error);
+    }
+  }
+
+  @Get('featured')
+  async findFeatured() {
+    try {
+      const posts = await this.postsService.findFeatured();
+      return new ResponseSuccess<Array<PostModel>>('Posts found', posts);
+    } catch (error) {
+      return new ResponseError(error.message, error);
     }
   }
 
