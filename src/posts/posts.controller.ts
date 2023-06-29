@@ -40,10 +40,7 @@ export class PostsController {
   }
 
   @Get()
-  async findAll(
-    @Query('page') page: number = 1,
-    perPage: number = 6,
-  ) {
+  async findAll(@Query('page') page: number = 1, perPage: number = 6) {
     try {
       const posts = await this.postsService.findAll(+page, perPage);
       const totalCount: number = await this.postsService.count();
@@ -68,8 +65,8 @@ export class PostsController {
   @Get('get/:id')
   async findOne(@Param('id') id: string) {
     try {
-      const post: PostModel = await this.postsService.findOne(+id);
-      await this.postsService.update(+id, { views: post.views + 1 });
+      const post: PostModel = await this.postsService.findOne(id);
+      await this.postsService.update(id, { views: post.views + 1 });
       if (!post) {
         return new ResponseError(`Post with id ${id} not found`, null);
       }
@@ -97,11 +94,11 @@ export class PostsController {
   ) {
     try {
       const posts = await this.postsService.findAllByUser(
-        +userId,
+        userId,
         +page,
         perPage,
       );
-      const totalCount: number = await this.postsService.count(+userId);
+      const totalCount: number = await this.postsService.count(userId);
       const totalPages: number = Math.ceil(totalCount / perPage);
       const info: IResponsePagination = {
         success: true,
@@ -128,7 +125,7 @@ export class PostsController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
     try {
-      const update = await this.postsService.update(+id, updatePostDto);
+      const update = await this.postsService.update(id, updatePostDto);
       return new ResponseSuccess<PostModel>('Post updated', update);
     } catch (error) {
       return new ResponseError(error.message, error);
@@ -138,7 +135,7 @@ export class PostsController {
   @Delete(':id')
   async remove(@Param('id') id: string) {
     try {
-      await this.postsService.remove(+id);
+      await this.postsService.remove(id);
       return new ResponseSuccess<PostModel>('Post deleted', null);
     } catch (error) {
       return new ResponseError(error.message, error);

@@ -8,25 +8,27 @@ datasource db {
   relationMode = "prisma"
 }
 
-model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  name     String?
-  password String?
-  image    String? @db.VarChar(500)
-  posts    Post[]
-}
-
 model Post {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @db.VarChar(250)
   title       String
   content     String?   @db.Text
   published   Boolean?  @default(false)
-  authorId    Int?
+  authorId    String?   @db.VarChar(250)
   createdAt   DateTime? @default(now()) @db.Timestamp(0)
   updatedAt   DateTime? @default(now()) @db.Timestamp(0)
   views       Int?      @default(0)
   image       String?   @db.VarChar(500)
   description String?   @db.VarChar(200)
   author      User?     @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id        String    @id @db.VarChar(250)
+  email     String    @unique
+  name      String?
+  password  String?
+  image     String?   @db.VarChar(500)
+  createdAt DateTime? @default(now()) @db.Timestamp(0)
+  updatedAt DateTime? @default(now()) @db.Timestamp(0)
+  post      Post[]
 }

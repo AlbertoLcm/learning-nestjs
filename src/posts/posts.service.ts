@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Post, Prisma } from '@prisma/client';
 import { CreatePostDto } from './dto/create-post.dto';
+import { v4 as generateID } from 'uuid';
 
 @Injectable()
 export class PostsService {
@@ -11,6 +12,7 @@ export class PostsService {
     const { title, content, authorEmail } = data;
     return this.prisma.post.create({
       data: {
+        id: generateID(),
         title,
         content,
         author: {
@@ -20,7 +22,7 @@ export class PostsService {
     });
   }
 
-  async count(userId?: number): Promise<number> {
+  async count(userId?: string): Promise<number> {
     if (userId) {
       return await this.prisma.post.count({
         where: {
@@ -44,7 +46,7 @@ export class PostsService {
     });
   }
 
-  findOne(id: number): Promise<Post> {
+  findOne(id: string): Promise<Post> {
     return this.prisma.post.findUnique({
       where: {
         id,
@@ -65,7 +67,7 @@ export class PostsService {
   }
 
   async findAllByUser(
-    userId: number,
+    userId: string,
     page: number,
     perPage: number,
   ): Promise<any> {
@@ -81,11 +83,11 @@ export class PostsService {
     });
   }
 
-  update(id: number, data: Prisma.PostUpdateInput) {
+  update(id: string, data: Prisma.PostUpdateInput) {
     return this.prisma.post.update({ data, where: { id } });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.prisma.post.delete({
       where: {
         id,
