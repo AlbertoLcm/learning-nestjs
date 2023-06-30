@@ -1,40 +1,59 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma.service';
-import { User, Prisma } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
+import { UsersService } from 'src/users/users.service';
+import { RegisterUserDto } from './dto/register-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
+import { ResponseError, ResponseSuccess } from 'src/common/dto/response.dto';
 import * as bcrypt from 'bcrypt';
-import { v4 as generateID } from 'uuid';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService, private jwtService: JwtService) {}
+  constructor(private users: UsersService, private jwtService: JwtService) {}
 
-  async signIn(email: string, pass: string): Promise<any> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
-    if (user?.password !== pass) {
-      throw new UnauthorizedException();
+  async signIn(data: LoginUserDto): Promise<any> {
+    try {
+      const user = await this.users.findOne(data.email);
+
+      if (!user) {
+        throw new UnauthorizedException({
+          message: 'El correo electrónico no existe',
+        });
+      }
+      const isMatch = await bcrypt.compare(data.password, user.password);
+
+      if (!isMatch)
+        throw new UnauthorizedException({ message: 'Contraseña incorrecta' });
+
+      const payload = { sub: user.id, email: user.email };
+
+      const { password, ...result } = user;
+
+      return new ResponseSuccess('Ingresado correctamente', {
+        access_token: await this.jwtService.signAsync(payload),
+        user: result,
+      });
+    } catch (error) {
+      return new ResponseError(error.message, error);
     }
-    const payload = { sub: user.id, email: user.email };
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    };
   }
 
-  async signUp(data: Prisma.UserCreateInput): Promise<any> {
-    const { password } = data;
-    const saltOrRounds = 10;
-    const hash = await bcrypt.hash(password, saltOrRounds);
-    const user = await this.prisma.user.create({
-      data: {
-        id: generateID(),
-        password: hash,
-        ...data,
-      },
-    });
+  async signUp(data: RegisterUserDto): Promise<any> {
+    try {
+      const userExists = await this.users.findOne(data.email);
+      if (userExists) {
+        return new UnauthorizedException({
+          message: 'Ya existe un usuario con ese correo electrónico',
+        });
+      }
+      const user = await this.users.createUser(data);
 
-    const payload = { sub: user.id, email: user.email };
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    };
+      const payload = { sub: user.id, email: user.email };
+      
+      return new ResponseSuccess('Registrado correctamente', {
+        access_token: await this.jwtService.signAsync(payload),
+      });
+    } catch (error) {
+      return new ResponseError(error.message, error);
+    }
   }
 }

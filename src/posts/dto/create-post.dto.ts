@@ -10,5 +10,9 @@ export class CreatePostDto implements Prisma.PostCreateInput {
   @IsEmail()
   authorEmail: string;
   @IsString()
+  @IsNotEmpty()
+  description: string;
+  @IsString()
+  @IsNotEmpty()
   content?: string;
 }

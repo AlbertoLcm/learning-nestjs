@@ -9,12 +9,13 @@ export class PostsService {
   constructor(private prisma: PrismaService) {}
 
   async createPost(data: CreatePostDto): Promise<Post> {
-    const { title, content, authorEmail } = data;
+    const { title, content, authorEmail, description } = data;
     return this.prisma.post.create({
       data: {
         id: generateID(),
         title,
         content,
+        description,
         author: {
           connect: { email: authorEmail },
         },
@@ -33,15 +34,26 @@ export class PostsService {
     return await this.prisma.post.count();
   }
 
-  async findAll(page: number, perPage: number): Promise<Post[]> {
+  async findAll(page: number, perPage: number): Promise<any[]> {
     return await this.prisma.post.findMany({
       skip: (page - 1) * perPage,
       take: perPage,
-      include: {
-        author: true,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        createdAt: true,
+        views: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
       },
       orderBy: {
-        id: 'desc',
+        createdAt: 'desc',
       },
     });
   }
@@ -77,8 +89,18 @@ export class PostsService {
       where: {
         authorId: userId,
       },
-      include: {
-        author: true,
+      select: {
+        ...this.prisma.post,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
   }
